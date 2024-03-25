@@ -26,6 +26,8 @@ struct SignUpVerificationView: View {
                 SignUpPhoneCodeView()
             case .emailCode:
                 SignUpEmailCodeView()
+            case .emailLink:
+                SignUpEmailLinkView()
             default:
                 ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)

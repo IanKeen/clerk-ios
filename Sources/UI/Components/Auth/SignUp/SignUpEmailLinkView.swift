@@ -1,19 +1,19 @@
 //
-//  SignInFactorOneEmailLinkView.swift
+//  SignUpEmailLinkView.swift
 //
 //
-//  Created by Mike Pitre on 2/20/24.
+//  Created by Mike Pitre on 3/25/24.
 //
 
 import SwiftUI
 
-struct SignInFactorOneEmailLinkView: View {
+struct SignUpEmailLinkView: View {
     @EnvironmentObject private var clerk: Clerk
     @EnvironmentObject private var clerkUIState: ClerkUIState
     @State private var errorWrapper: ErrorWrapper?
         
-    private var signIn: SignIn {
-        clerk.client.signIn
+    private var signUp: SignUp {
+        clerk.client.signUp
     }
     
     var body: some View {
@@ -31,32 +31,26 @@ struct SignInFactorOneEmailLinkView: View {
                     .multilineTextAlignment(.center)
                     
                     IdentityPreviewView(
-                        label: signIn.currentFirstFactor?.safeIdentifier ?? signIn.identifier,
+                        label: signUp.emailAddress,
                         action: {
-                            clerkUIState.presentedAuthStep = .signInStart
+                            clerkUIState.presentedAuthStep = .signUpStart
                         }
                     )
                 }
                 .padding(.bottom, 32)
-                
-                Button {
-                    clerkUIState.presentedAuthStep = .signInFactorOneUseAnotherMethod(signIn.firstFactor(for: .emailLink))
-                } label: {
-                    Text("Use another method")
-                        .frame(maxWidth: .infinity)
-                        .clerkStandardButtonPadding()
-                }
-                .buttonStyle(ClerkPrimaryButtonStyle())
             }
             .padding(.horizontal)
             .padding(.vertical, 32)
         }
         .clerkErrorPresenting($errorWrapper)
         .task {
+            await prepare()
+        }
+        .task {
             repeat {
                 do {
                     try await clerk.client.get()
-                    clerkUIState.setAuthStepToCurrentStatus(for: signIn)
+                    clerkUIState.setAuthStepToCurrentStatus(for: signUp)
                     try? await Task.sleep(for: .seconds(1))
                 } catch {
                     errorWrapper = ErrorWrapper(error: error)
@@ -65,9 +59,23 @@ struct SignInFactorOneEmailLinkView: View {
             } while (!Task.isCancelled)
         }
     }
+    
+    private func prepare() async {
+        let emailVerification = signUp.verifications.first(where: { $0.key == "email_link" })?.value
+        if signUp.status == nil || emailVerification?.status == .verified {
+            return
+        }
+        
+        do {
+            try await signUp.prepareVerification(.emailLink)
+        } catch {
+            errorWrapper = ErrorWrapper(error: error)
+            dump(error)
+        }
+    }
 }
 
 #Preview {
-    SignInFactorOneEmailLinkView()
+    SignUpEmailLinkView()
         .environmentObject(Clerk.shared)
 }

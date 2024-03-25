@@ -278,6 +278,7 @@ public struct SignUp: Codable, Sendable {
     
     public enum PrepareStrategy {
         case emailCode
+        case emailLink
         case phoneCode
     }
     
@@ -285,17 +286,24 @@ public struct SignUp: Codable, Sendable {
         switch strategy {
         case .emailCode:
             return .init(strategy: .emailCode)
+        case .emailLink:
+            return .init(strategy: .emailLink, redirectUrl: Clerk.shared.redirectConfig.redirectUrl)
         case .phoneCode:
             return .init(strategy: .phoneCode)
         }
     }
     
     public struct PrepareVerificationParams: Encodable {
-        public init(strategy: Strategy) {
+        public init(
+            strategy: Strategy,
+            redirectUrl: String? = nil
+        ) {
             self.strategy = strategy.stringValue
+            self.redirectUrl = redirectUrl
         }
         
         public let strategy: String
+        public let redirectUrl: String?
     }
     
     /**
