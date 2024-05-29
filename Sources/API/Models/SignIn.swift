@@ -368,6 +368,14 @@ public struct SignIn: Codable, Sendable {
         try await authSession.start()
     }
     #endif
+    
+    #if canImport(AuthenticationServices) && !os(watchOS)
+    @MainActor
+    static func signInWithApple() async throws {
+        let authManager = ASAuthManager(authType: .signInWithApple)
+        let authorization = try await authManager.start()
+    }
+    #endif
 }
 
 extension SignIn {

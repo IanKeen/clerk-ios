@@ -9,6 +9,7 @@
 
 import SwiftUI
 import Algorithms
+import AuthenticationServices
 
 struct AuthSocialProvidersView: View {
     @ObservedObject private var clerk = Clerk.shared
@@ -79,9 +80,14 @@ struct AuthSocialProvidersView: View {
     private func signIn(provider: ExternalProvider) async {
         KeyboardHelpers.dismissKeyboard()
         do {
-            try await SignIn.create(strategy: .externalProvider(provider)).authenticateWithRedirect()
-            onSuccess?()
+            if provider == .apple {
+                try await SignIn.signInWithApple()
+            } else {
+                try await SignIn.create(strategy: .externalProvider(provider)).authenticateWithRedirect()
+                onSuccess?() // move this down to common flow once we perform sign in with token
+            }
         } catch {
+            if case ASAuthorizationError.canceled = error { return }
             errorWrapper = ErrorWrapper(error: error)
             dump(error)
         }
@@ -90,9 +96,14 @@ struct AuthSocialProvidersView: View {
     private func signUp(provider: ExternalProvider) async {
         KeyboardHelpers.dismissKeyboard()
         do {
-            try await SignUp.create(strategy: .externalProvider(provider)).authenticateWithRedirect()
-            onSuccess?()
+            if provider == .apple {
+                try await SignUp.signUpWithApple()
+            } else {
+                try await SignUp.create(strategy: .externalProvider(provider)).authenticateWithRedirect()
+                onSuccess?() // move this down to common flow once we perform sign in with token
+            }
         } catch {
+            if case ASAuthorizationError.canceled = error { return }
             errorWrapper = ErrorWrapper(error: error)
             dump(error)
         }
