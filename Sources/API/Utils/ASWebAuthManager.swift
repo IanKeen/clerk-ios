@@ -10,7 +10,7 @@
 import AuthenticationServices
 
 @MainActor
-final class ExternalAuthWebSession: NSObject {
+final class ASWebAuthManager: NSObject {
     let url: URL
     let authAction: AuthAction
     
@@ -98,7 +98,7 @@ final class ExternalAuthWebSession: NSObject {
     
 }
 
-extension ExternalAuthWebSession: ASWebAuthenticationPresentationContextProviding {
+extension ASWebAuthManager: ASWebAuthenticationPresentationContextProviding {
     
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
         ASPresentationAnchor()

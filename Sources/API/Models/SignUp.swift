@@ -105,6 +105,7 @@ public struct SignUp: Codable, Sendable {
     }
     
     #if canImport(AuthenticationServices) && !os(watchOS)
+    /// Starts the native sign up with apple flow
     @MainActor
     static func signUpWithApple() async throws {
         let authManager = ASAuthManager(authType: .signInWithApple)
@@ -312,7 +313,7 @@ public struct SignUp: Codable, Sendable {
             throw ClerkClientError(message: "Redirect URL is missing or invalid. Unable to start external authentication flow.")
         }
         
-        let authSession = ExternalAuthWebSession(url: url, authAction: .signUp)
+        let authSession = ASWebAuthManager(url: url, authAction: .signUp)
         try await authSession.start()
     }
     #endif
