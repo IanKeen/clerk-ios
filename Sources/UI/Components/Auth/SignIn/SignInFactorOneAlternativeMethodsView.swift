@@ -9,6 +9,7 @@
 
 import SwiftUI
 import NukeUI
+import AuthenticationServices
 
 struct SignInFactorOneAlternativeMethodsView: View {
     @ObservedObject private var clerk = Clerk.shared
@@ -27,10 +28,15 @@ struct SignInFactorOneAlternativeMethodsView: View {
     
     private func signIn(provider: ExternalProvider) async {
         do {
-            try await SignIn.create(strategy: .externalProvider(provider)).authenticateWithRedirect()
+            if provider == .apple {
+                try await SignIn.signInWithApple()
+            } else {
+                try await SignIn.create(strategy: .externalProvider(provider)).authenticateWithRedirect()
+            }
             clerkUIState.setAuthStepToCurrentStatus(for: signIn)
         } catch {
-            clerkUIState.presentedAuthStep = .signInStart
+            if case ASAuthorizationError.canceled = error { return }
+            errorWrapper = ErrorWrapper(error: error)
             dump(error)
         }
     }

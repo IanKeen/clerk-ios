@@ -84,8 +84,8 @@ struct AuthSocialProvidersView: View {
                 try await SignIn.signInWithApple()
             } else {
                 try await SignIn.create(strategy: .externalProvider(provider)).authenticateWithRedirect()
-                onSuccess?() // move this down to common flow once we perform sign in with token
             }
+            onSuccess?()
         } catch {
             if case ASAuthorizationError.canceled = error { return }
             errorWrapper = ErrorWrapper(error: error)
@@ -100,8 +100,8 @@ struct AuthSocialProvidersView: View {
                 try await SignUp.signUpWithApple()
             } else {
                 try await SignUp.create(strategy: .externalProvider(provider)).authenticateWithRedirect()
-                onSuccess?() // move this down to common flow once we perform sign in with token
             }
+            onSuccess?()
         } catch {
             if case ASAuthorizationError.canceled = error { return }
             errorWrapper = ErrorWrapper(error: error)

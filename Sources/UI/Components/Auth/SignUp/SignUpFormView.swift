@@ -124,29 +124,6 @@ struct SignUpFormView: View {
                 }
             }
             
-            if let email = clerk.environment?.userSettings.config(for: .emailAddress), email.enabled {
-                VStack(alignment: .leading) {
-                    HStack {
-                        Text("Email address")
-                            .font(.footnote.weight(.medium))
-                            .foregroundStyle(clerkTheme.colors.textPrimary)
-                        Spacer()
-                        if !email.required {
-                            Text("Optional")
-                                .font(.caption2.weight(.medium))
-                                .foregroundStyle(clerkTheme.colors.textTertiary)
-                        }
-                    }
-                    
-                    CustomTextField(text: $emailAddress)
-                        .textContentType(.emailAddress)
-                        .keyboardType(.emailAddress)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled(true)
-                        .focused($focusedField, equals: .emailAddress)
-                }
-            }
-            
             if let phoneNumber = clerk.environment?.userSettings.config(for: .phoneNumber), phoneNumber.enabled {
                 VStack(alignment: .leading) {
                     HStack {
@@ -167,6 +144,29 @@ struct SignUpFormView: View {
                 }
             }
             
+            if let email = clerk.environment?.userSettings.config(for: .emailAddress), email.enabled {
+                VStack(alignment: .leading) {
+                    HStack {
+                        Text("Email address")
+                            .font(.footnote.weight(.medium))
+                            .foregroundStyle(clerkTheme.colors.textPrimary)
+                        Spacer()
+                        if !email.required {
+                            Text("Optional")
+                                .font(.caption2.weight(.medium))
+                                .foregroundStyle(clerkTheme.colors.textTertiary)
+                        }
+                    }
+                    
+                    CustomTextField(text: $emailAddress)
+                        .textContentType(.username)
+                        .keyboardType(.emailAddress)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled(true)
+                        .focused($focusedField, equals: .emailAddress)
+                }
+            }
+            
             if clerk.environment?.userSettings.instanceIsPasswordBased == true {
                 VStack(alignment: .leading) {
                     HStack {
@@ -177,6 +177,7 @@ struct SignUpFormView: View {
                     }
                     
                     PasswordInputView(password: $password)
+                        .textContentType(.newPassword)
                         .focused($focusedField, equals: .password)
                     
                     if Clerk.LocalAuth.availableBiometryType != .none {
@@ -233,7 +234,11 @@ struct SignUpFormView: View {
                         
             switch signUp.nextStrategyToVerify {
             case .externalProvider, .saml:
-                try await signUp.authenticateWithRedirect()
+                if signUp.nextStrategyToVerify == .externalProvider(.apple) {
+                    try await SignUp.signUpWithApple()
+                } else {
+                    try await signUp.authenticateWithRedirect()
+                }
             default:
                 break
             }
